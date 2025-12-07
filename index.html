@@ -31,12 +31,28 @@
       padding: 0;
     }
 
+    html {
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    html::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+
     body {
       font-family: var(--font-sans);
       background: radial-gradient(circle at top, #1e293b 0, #020617 55%, #000 100%);
       color: var(--text-main);
       -webkit-font-smoothing: antialiased;
       line-height: 1.6;
+      overflow-y: scroll; /* Сохраняем возможность прокрутки */
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+
+    body::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
     }
 
     a {
@@ -1290,7 +1306,7 @@
               </p>
             </div>
             <div class="card">
-              <div class="price-value">от XXX грн / 60 мин</div>
+              <div class="price-value">от 500 грн / 60 мин</div>
               <div class="price-caption">точная стоимость зависит от формата и уровня программы</div>
               <ul class="card-list">
                 <li>индивидуальное онлайн-занятие 60 минут</li>
@@ -1392,7 +1408,9 @@
         </div>
         <div class="contact-grid">
           <div class="contact-card">
-            <form class="form" onsubmit="event.preventDefault(); alert('Спасибо! Ваша заявка отправлена. Я свяжусь с вами в ближайшее время.');">
+            <form class="form" action="https://formspree.io/f/xkgdvnyo" method="POST">
+              <input type="hidden" name="_next" value="?submitted=true#contact-form" />
+              <input type="hidden" name="_subject" value="Новая заявка с сайта репетитора по математике" />
               <div class="field-group">
                 <div class="field">
                   <label>Имя <span>*</span></label>
@@ -1485,11 +1503,31 @@
 
       <!-- FOOTER -->
       <footer>
-        <div>© 2025 Репетитор по математике. Все права защищены.</div>
         <div class="footer-links">
         </div>
       </footer>
     </div>
   </div>
+
+  <script>
+    // Обработка успешной отправки формы через Formspree
+    const form = document.querySelector('.form');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        // Formspree обработает отправку, но мы можем показать сообщение
+        setTimeout(function() {
+          // Проверяем, была ли форма успешно отправлена
+          // Formspree перенаправляет на страницу благодарности, но мы можем перехватить это
+        }, 100);
+      });
+    }
+
+    // Показываем сообщение об успехе, если в URL есть параметр success
+    if (window.location.search.includes('submitted=true')) {
+      alert('Спасибо! Ваша заявка отправлена. Я свяжусь с вами в ближайшее время.');
+      // Очищаем URL от параметра
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  </script>
 </body>
 </html>
