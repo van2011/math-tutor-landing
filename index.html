@@ -1560,20 +1560,14 @@
 
       // Функция форматирования номера
       function formatPhone(digits) {
-        // Всегда начинаем с 38, префикс нельзя удалить
         if (digits.length === 0) {
           digits = '38';
         } else if (!digits.startsWith('38')) {
-          // Если не начинается с 38, заменяем начало на 38
           digits = '38' + digits.replace(/^38/, '').replace(/^[0-9]+/, '');
         }
-
-        // Ограничиваем до 12 цифр (38 + 10 цифр номера)
         if (digits.length > 12) {
           digits = digits.substring(0, 12);
         }
-
-        // Форматируем номер
         let formatted = '+38';
         if (digits.length > 2) {
           const phoneDigits = digits.substring(2);
@@ -1599,18 +1593,11 @@
       contactInput.addEventListener('input', function (e) {
         let value = e.target.value;
         let cursorPos = e.target.selectionStart;
-
-        // Удаляем все символы кроме цифр
         let digits = value.replace(/\D/g, '');
-
-        // Определяем, было ли добавление или удаление
         let wasAddition = digits.length > previousDigits.length;
         let wasDeletion = digits.length < previousDigits.length;
-
-        // Проверяем лимит (12 цифр: 38 + 10 цифр номера)
         const MAX_DIGITS = 12;
         if (digits.length > MAX_DIGITS) {
-          // Если превышен лимит и это добавление, откатываем к предыдущему значению
           if (wasAddition) {
             e.target.value = previousValue;
             setTimeout(function () {
@@ -1618,24 +1605,16 @@
             }, 0);
             return;
           }
-          // Если это не добавление, обрезаем до лимита
           digits = digits.substring(0, MAX_DIGITS);
         }
-
-        // Форматируем номер (префикс 38 всегда сохраняется)
         let formatted = formatPhone(digits);
-
-        // Вычисляем новую позицию курсора
-        let newCursorPos = 3; // Минимальная позиция - после "+38"
+        let newCursorPos = 3;
 
         if (wasAddition) {
-          // При добавлении: подсчитываем цифры до курсора в текущей строке
           let digitsBeforeCursor = value.substring(0, cursorPos).replace(/\D/g, '').length;
           if (cursorPos <= 3) {
             digitsBeforeCursor = 2;
           }
-
-          // Находим позицию после введенной цифры
           let digitCount = 0;
           for (let i = 0; i < formatted.length; i++) {
             if (/\d/.test(formatted[i])) {
@@ -1651,21 +1630,13 @@
             }
           }
         } else if (wasDeletion) {
-          // При удалении: используем сохраненную позицию курсора из предыдущей строки
-          // Находим, сколько цифр было до курсора в предыдущей строке
           let digitsBeforeCursor = previousValue.substring(0, previousCursorPos).replace(/\D/g, '').length;
           if (previousCursorPos <= 3) {
             digitsBeforeCursor = 2;
           }
-
-          // При удалении цифры перед курсором, количество цифр до курсора уменьшается на 1
-          // Но мы хотим остаться на той же позиции относительно оставшихся цифр
-          // Поэтому используем digitsBeforeCursor - 1
           if (digitsBeforeCursor > 2) {
             digitsBeforeCursor = digitsBeforeCursor - 1;
           }
-
-          // Находим позицию, соответствующую количеству оставшихся цифр
           let digitCount = 0;
           for (let i = 0; i < formatted.length; i++) {
             if (/\d/.test(formatted[i])) {
@@ -1677,7 +1648,6 @@
             }
           }
         } else {
-          // Если количество не изменилось (например, при вставке)
           let digitsBeforeCursor = value.substring(0, cursorPos).replace(/\D/g, '').length;
           if (cursorPos <= 3) {
             digitsBeforeCursor = 2;
@@ -1694,26 +1664,18 @@
             }
           }
         }
-
-        // Не позволяем курсору заходить внутрь "+38"
         if (newCursorPos < 3) {
           newCursorPos = 3;
         }
 
         e.target.value = formatted;
-
-        // Сохраняем текущие значения для следующего вызова
         previousValue = formatted;
         previousDigits = digits;
-
-        // Восстанавливаем позицию курсора
         setTimeout(function () {
           e.target.setSelectionRange(newCursorPos, newCursorPos);
           previousCursorPos = newCursorPos; // Сохраняем новую позицию курсора
         }, 0);
       });
-
-      // Обработка клика - не позволяем курсору заходить внутрь "+38"
       contactInput.addEventListener('click', function (e) {
         let cursorPos = e.target.selectionStart;
         if (cursorPos < 3) {
@@ -1725,36 +1687,28 @@
           previousCursorPos = cursorPos;
         }
       });
-
-      // Сохраняем позицию курсора перед любым изменением
       contactInput.addEventListener('keydown', function (e) {
-        // Сохраняем позицию курсора перед изменением
         previousCursorPos = e.target.selectionStart;
 
-        if (e.keyCode === 8 || e.keyCode === 46) { // Backspace или Delete
+        if (e.keyCode === 8 || e.keyCode === 46) {
           let value = e.target.value;
           let cursorPos = e.target.selectionStart;
           let selectionEnd = e.target.selectionEnd;
 
-          // Блокируем удаление префикса "+38" - курсор не может зайти внутрь
           if (cursorPos <= 3 && cursorPos === selectionEnd) {
             e.preventDefault();
-            // Перемещаем курсор на позицию после "+38" если он внутри
             setTimeout(function () {
               e.target.setSelectionRange(3, 3);
             }, 0);
             return;
           }
 
-          // Для Delete - если курсор на позиции 3 (после "+38"), блокируем удаление
           if (e.keyCode === 46 && cursorPos === 3 && cursorPos === selectionEnd) {
             e.preventDefault();
             return;
           }
 
-          // Если есть выделение, удаляем его
           if (cursorPos !== selectionEnd) {
-            // Проверяем, не выделен ли префикс "+38"
             if (cursorPos <= 3 || selectionEnd <= 3) {
               e.preventDefault();
               setTimeout(function () {
@@ -1762,31 +1716,22 @@
               }, 0);
               return;
             }
-            return; // Позволяем стандартное поведение для остальных случаев
+            return;
           }
 
           let digits = value.replace(/\D/g, '');
           let phoneDigits = digits.length > 2 ? digits.substring(2) : '';
-
-          // Проверяем, есть ли цифры после закрывающей скобки
           let closingBracketPos = value.indexOf(')');
           let digitsAfterBracket = '';
           if (closingBracketPos !== -1 && phoneDigits.length > 3) {
             digitsAfterBracket = phoneDigits.substring(3);
           }
-
-          // Если после скобки нет цифр (т.е. осталось только +38 (XXX) или меньше)
-          // и пользователь нажимает backspace, удаляем цифру из скобок
           if (phoneDigits.length <= 3 && phoneDigits.length > 0 && digitsAfterBracket.length === 0) {
-            // Проверяем, находится ли курсор после закрывающей скобки или на ней
             if (closingBracketPos !== -1 && cursorPos >= closingBracketPos) {
               e.preventDefault();
-              // Удаляем последнюю цифру из phoneDigits
               let newDigits = '38' + phoneDigits.substring(0, phoneDigits.length - 1);
               let formatted = formatPhone(newDigits);
               e.target.value = formatted;
-
-              // Устанавливаем курсор после последней цифры в скобках
               setTimeout(function () {
                 let newPhoneDigits = newDigits.length > 2 ? newDigits.substring(2) : '';
                 let newPos = formatted.length;
@@ -1796,7 +1741,7 @@
                     newPos = openBracketPos + 1 + newPhoneDigits.length;
                   }
                 } else {
-                  newPos = 3; // После "+38"
+                  newPos = 3;
                 }
                 e.target.setSelectionRange(newPos, newPos);
               }, 0);
@@ -1805,23 +1750,16 @@
           }
         }
       });
-
-      // Предотвращаем ввод нецифровых символов
       contactInput.addEventListener('keypress', function (e) {
         let value = e.target.value;
         let cursorPos = e.target.selectionStart;
-
-        // Блокируем ввод, если курсор находится внутри "+38"
         if (cursorPos < 3) {
           e.preventDefault();
-          // Перемещаем курсор после "+38"
           setTimeout(function () {
             e.target.setSelectionRange(3, 3);
           }, 0);
           return;
         }
-
-        // Разрешаем: backspace, delete, tab, escape, enter
         if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
           // Разрешаем: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
           (e.keyCode === 65 && e.ctrlKey === true) ||
@@ -1830,25 +1768,18 @@
           (e.keyCode === 88 && e.ctrlKey === true)) {
           return;
         }
-
-        // Проверяем лимит (12 цифр: 38 + 10 цифр номера)
         const MAX_DIGITS = 12;
         let digits = value.replace(/\D/g, '');
         if (digits.length >= MAX_DIGITS) {
-          // Если достигнут лимит, блокируем ввод цифр
           if ((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105)) {
             e.preventDefault();
             return;
           }
         }
-
-        // Запрещаем все остальные символы кроме цифр
         if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
           e.preventDefault();
         }
       });
-
-      // Обработка вставки через Ctrl+V
       contactInput.addEventListener('paste', function (e) {
         e.preventDefault();
         let paste = (e.clipboardData || window.clipboardData).getData('text');
@@ -1856,19 +1787,14 @@
         if (digits.length > 0 && !digits.startsWith('38')) {
           digits = '38' + digits.replace(/^38/, '');
         }
-        // Ограничиваем до лимита (12 цифр)
         const MAX_DIGITS = 12;
         if (digits.length > MAX_DIGITS) {
           digits = digits.substring(0, MAX_DIGITS);
         }
         let formatted = formatPhone(digits);
         contactInput.value = formatted;
-
-        // Обновляем сохраненные значения
         previousValue = formatted;
         previousDigits = digits;
-
-        // Устанавливаем курсор в конец
         setTimeout(function () {
           contactInput.setSelectionRange(formatted.length, formatted.length);
           previousCursorPos = formatted.length;
@@ -1880,18 +1806,12 @@
     const form = document.querySelector('.form');
     if (form) {
       form.addEventListener('submit', function (e) {
-        // Formspree обработает отправку, но мы можем показать сообщение
         setTimeout(function () {
-          // Проверяем, была ли форма успешно отправлена
-          // Formspree перенаправляет на страницу благодарности, но мы можем перехватить это
         }, 100);
       });
     }
-
-    // Показываем сообщение об успехе, если в URL есть параметр success
     if (window.location.search.includes('submitted=true')) {
       alert('Спасибо! Ваша заявка отправлена. Я свяжусь с вами в ближайшее время.');
-      // Очищаем URL от параметра
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   </script>
